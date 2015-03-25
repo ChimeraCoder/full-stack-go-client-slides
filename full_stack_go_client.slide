@@ -1,0 +1,188 @@
+Full Stack Go, Part 2: Web & Native Desktop/Mobile
+Hacker School
+11 Mar 2015
+
+Aditya Mukerjee
+
+http://www.adityamukerjee.net
+@chimeracoder
+
+* 
+.image 88x31.png
+
+* Full Stack Go, Part 1: Servers (Recap)
+
+* What did we learn?
+- Go makes building servers convenient
+- Having a *strong*development*toolchain* (`go`get`, `gofmt`/`goimports`, `gojson`, etc.) eliminates many common concerns
+- Having a *strict*compiler* makes developing and refactoring projects painless
+- Go contains the equivalent of Flask/Sinatra/Express in the *standard*library*
+- Go makes concurrency *conceptually*simple*
+
+
+* A bit more on concurrency
+
+
+
+
+* Synchronicity by Example
+.play synchronous_greet.go /START OMIT/,/END OMIT/
+
+
+* Goroutines by Example
+.play async_greet.go /START OMIT/,/END OMIT/
+
+Yes, it really is just that easy.
+
+
+* Goroutines vs. Callbacks
+
+- Goroutines resemble synchronous code
+- Callbacks resemble synchronous code turned "inside out"
+- It is easy to turn a function call into a goroutine
+- It is difficult to refactor synchronous code to use callbacks
+- It is difficult to refactor callback-based code to be synchronous
+- Callbacks are literally equivalent to `goto`
+
+    func getPersonAge(name) int {
+        // Is there a drop-in asynchronous replacement for
+        // synchronous http.Get using only callbacks?
+        result = http.Get("https://api.example.com/person" + name)
+        return unmarshal(result).Age
+    }
+    
+* Concurrency in Go: Channels
+- Channels provide a convenient way to share information between goroutines
+- Channels serve as a "synchronization point" between otherwise independent, concurrent goroutines
+
+
+* Channels by Example:
+.play channel_example.go /START OMIT/,/END OMIT/
+
+* Let's take a closer look at that:
+.play channel_example_annotated.go /START OMIT/,/END OMIT/
+
+* Selecting Channels
+- "select" will read from the first channel that sends a value
+.code select_example.go /START OMIT/,/END OMIT/
+
+- This can also be used to initiate timeouts
+.code select_timeout_example.go /START OMIT/,/END OMIT/
+
+
+* But why can't I just use <insert Javascript pattern here/>?
+
+- You could... but then you'd lose parallelism
+- Javascript runtimes all execute on a single thread
+- In a multithreaded/parallel runtime environment, many Javascript async patterns would yield race conditions
+- Worse, these race conditions would be *unsolvable* with a cooperative scheduler
+- (N.B. This doesn't mean Javascript doesn't have race conditions as-is; they're just a different kind) 
+- Also, Go's runtime is *pre-emptive*
+
+
+
+
+* Pre-emption vs. cooperation
+
+- Under a cooperative model, a function has to voluntarily yield control.
+- Under a pre-emptive model, the scheduler does not assume functions will cooperate
+- Example: In Javascript, synchronous I/O inside a loop will freeze the entire browser
+- In Go, running *any* function inside a loop will never† starve other goroutines
+- Challenge: Implement channels and select in Javascript, using existing syntax and semantics and a cooperative scheduler but assuming a multithreaded runtime‡ 
+
+
+(†Obligatory "well actually": inlined functions do not invoke the scheduler, but `gc` is very non-aggressive with inlining)
+‡ If you solve this challenge, don't tell anyone else, but tell me so we can write the paper together and make lots of $$$
+
+
+
+
+* In conclusion: Go makes concurrency easy
+- Goroutines are easy to reason about
+- Channels make sharing information between goroutines easy
+- Go includes [[http://golang.org/doc/articles/race_detector.html][a built-in race detector]]
+
+
+* Why is this relevant to full-stack Go?
+- Currently, most client-side programming in other languages rely solely on the callback model
+- It's easy to model callbacks in Go, but in doing so, you would lose a lot of what makes concurrency in Go easy
+- Instead, let's try to use Go's native concurrency patterns, and gracefully degrade to callbacks only when necessary
+
+
+
+* Client-Side Go: Android
+
+* History of Go on Android
+- ARM has been a supported platform from Go 1.0
+- With Go 1.4, Android is now [[https://github.com/golang/mobile][officially supported]]
+- Main use cases: OpenGL games (pure Go), or libraries to interact with existing Java code.
+- APIs are 'currently very limited, but under active development.'
+
+
+* Basic example: Framerate test
+- Warning: produces bright, rapidly flashing colors
+
+[[https://github.com/golang/mobile/tree/master/example/basic]]
+
+
+
+* Screenshots
+.image basic_screenshot_1.png
+.image basic_screenshot_2.png
+
+
+* What about iOS?
+- [[https://groups.google.com/forum/m/?_escaped_fragment_=topic/golang-nuts/mmB2q8RqB-Y#!topic/golang-nuts/mmB2q8RqB-Y][Potentially coming in 1.5 or 1.6]], (but don't hold your breath just yet)
+
+
+* Client-Side Go: Web
+
+- Javascript is *not* an officially supported platform for Go
+- However, [[https://github.com/gopherjs/gopherjs/][gopherjs]] provides compilation-to-Javascript as a Go package
+- GopherJS also provides bindings for [[https://github.com/gopherjs/jquery][JQuery]], [[https://github.com/gopherjs/websocket][websockets]], and [[https://github.com/gopherjs/webgl][webgl]].
+- There is already a library for Angular.js support. React.js is potentially coming.
+
+* Examples
+
+- [[https://github.com/wyc/victini/blob/master/public/static/gojs/draft.go][A basic Magic: The Gathering draft app I worked on for the Gopher Gala]]
+- ...it doesn't count as Javascript if you don't have a [[https://github.com/gopherjs/todomvc][TodoMVC example]]
+- For more info, take a look at [[https://github.com/gopherjs/gopherjs-book][the GopherJS book]]
+- Also, Willa can tell you about her experiences with mixing GopherJS ↔ Javascript
+
+* Client-Side Go: Native Desktop Applications
+
+- Canonical has developed [[https://github.com/go-qml/qml][go-qml]], for using QML to write native desktop applications in Go
+- This also runs on the Ubuntu Touch phone
+- Examples: [[http://blog.labix.org/2014/04/25/qml-contest-results][Go QML contest winners]]
+
+
+* Client-Side Go: FirefoxOS
+
+- FirefoxOS uses Javascript natively, and we can compile Go to Javascript.  Next!
+
+* Wait, isn't that cheating?
+- No! 
+- The Web is a powerful and versatile platform
+- The distinction between 'Web' and 'native' exists, but it is artificial
+- The Web is more "cross-platform" than the JVM and .NET have ever been
+
+.image firefox_os.png
+
+
+* Client-Side Go: Native Desktop Applications (approach #2)
+
+- If you don't want to use QML, you can also try andlabs's [[https://github.com/andlabs/ui][cross-platform UI toolkit]]
+.image widgetgallery.png
+
+
+* Key Takeaways
+- 'All mail clients suck. This one just sucks less.' - [[http://www.mutt.org/][mutt]] homepage
+- Similarly, GUI programming has always been challenging, on every platform
+- However, we can reduce friction by using a programming language that is *clear*, *concise*, and *easy*to*maintain*.
+- We can also use languages which have *powerful*tooling* to help us develop faster
+- In 2015, it is possible to write an entire application - server, webapp, native Windows desktop app, native OS X desktop app, native Linux desktop app, native OpenBSD app, native Plan9 desktop app, native Android app, and native Firefox app... *without*writing*a*single*line*of*any*language*other*than*Go!*
+
+
+* 
+- In 2016, perhaps someone will do this. :)
+
