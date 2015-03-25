@@ -1,0 +1,12 @@
+Full Stack Go, Part II: Client-side Go
+=======================================
+
+The second part of a two-part workshop on full-stack development in Go. The workshop was hosted at the [Recurse Center](https://www.recurse.com/) on March 25, 2015
+
+Part II covers client-side Go (web, native mobile, native desktop, etc.).
+
+
+
+##### License
+
+All slides and images are provided under a CC-BY-SA license, except the screenshot of the FirefoxOS homepage and the screenshot of the widget gallery (from the [andlabs/ui](https://github.com/andlabs/ui) library, provided under the MIT license).
