@@ -149,12 +149,6 @@ Yes, it really is just that easy.
 - For more info, take a look at [[https://github.com/gopherjs/gopherjs-book][the GopherJS book]]
 - Also, Willa can tell you about her experiences with mixing GopherJS ↔ Javascript
 
-* Client-Side Go: Native Desktop Applications
-
-- Canonical has developed [[https://github.com/go-qml/qml][go-qml]], for using QML to write native desktop applications in Go
-- This also runs on the Ubuntu Touch phone
-- Examples: [[http://blog.labix.org/2014/04/25/qml-contest-results][Go QML contest winners]]
-
 
 * Client-Side Go: FirefoxOS
 
@@ -167,6 +161,13 @@ Yes, it really is just that easy.
 - The Web is more "cross-platform" than the JVM and .NET have ever been
 
 .image firefox_os.png
+
+* Client-Side Go: Native Desktop Applications
+
+- Canonical has developed [[https://github.com/go-qml/qml][go-qml]], for using QML to write native desktop applications in Go
+- This also runs on the Ubuntu Touch phone
+- Examples: [[http://blog.labix.org/2014/04/25/qml-contest-results][Go QML contest winners]]
+
 
 
 * Client-Side Go: Native Desktop Applications (approach #2)
