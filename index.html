@@ -1,0 +1,669 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Full Stack Go, Part 2: Web &amp; Native Desktop/Mobile</title>
+    <meta charset='utf-8'>
+    <script src='static/slides.js'></script>
+  </head>
+
+  <body style='display: none'>
+
+    <section class='slides layout-widescreen'>
+      
+      <article>
+        <h1>Full Stack Go, Part 2: Web &amp; Native Desktop/Mobile</h1>
+        <h3>Hacker School</h3>
+        <h3>11 March 2015</h3>
+        
+          <div class="presenter">
+            
+  
+  <p>
+    Aditya Mukerjee
+  </p>
+  
+
+          </div>
+        
+          <div class="presenter">
+            
+          </div>
+        
+      </article>
+      
+  
+  
+      <article>
+      
+        <h3></h3>
+        
+<div class="image">
+  <img src="88x31.png">
+</div>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h2>Full Stack Go, Part 1: Servers (Recap)</h2>
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>What did we learn?</h3>
+        
+  <ul>
+  
+    <li>Go makes building servers convenient</li>
+  
+    <li>Having a <b>strong development toolchain</b> (<code>go get</code>, <code>gofmt / goimports</code>, <code>gojson</code>, etc.) eliminates many common concerns</li>
+  
+    <li>Having a <b>strict compiler</b> makes developing and refactoring projects painless</li>
+  
+    <li>Go contains the equivalent of Flask/Sinatra/Express in the <b>standard library</b></li>
+  
+    <li>Go makes concurrency <b>conceptually simple</b></li>
+  
+  </ul>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h2>A bit more on concurrency</h2>
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Synchronicity by Example</h3>
+        
+  <div class="code" contenteditable="true" spellcheck="false">
+
+
+<pre><span num="9">func Greet(name string) {</span>
+<span num="10">    log.Printf(&#34;Greetings, %s!&#34;, name)</span>
+<span num="11">    time.Sleep(3 * time.Second)</span>
+<span num="12">}</span>
+<span num="13"></span>
+<span num="14">func main() {</span>
+<span num="15">    Greet(&#34;Alice&#34;)</span>
+<span num="16">    Greet(&#34;Bob&#34;)</span>
+<span num="17">}</span>
+</pre>
+
+
+</div>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Goroutines by Example</h3>
+        
+  <div class="code" contenteditable="true" spellcheck="false">
+
+
+<pre><span num="9">func Greet(name string) {</span>
+<span num="10">    log.Printf(&#34;Greetings, %s!&#34;, name)</span>
+<span num="11">    time.Sleep(3 * time.Second)</span>
+<span num="12">}</span>
+<span num="13"></span>
+<span num="14">func main() {</span>
+<span num="15">    go Greet(&#34;Alice&#34;)</span>
+<span num="16">    go Greet(&#34;Bob&#34;)</span>
+<span num="17"></span>
+<span num="18">    time.Sleep(5 * time.Second)</span>
+<span num="19">}</span>
+</pre>
+
+
+</div>
+
+  
+  <p>
+    Yes, it really is just that easy.
+  </p>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Goroutines vs. Callbacks</h3>
+        
+  <ul>
+  
+    <li>Goroutines resemble synchronous code</li>
+  
+    <li>Callbacks resemble synchronous code turned &#34;inside out&#34;</li>
+  
+    <li>It is easy to turn a function call into a goroutine</li>
+  
+    <li>It is difficult to refactor synchronous code to use callbacks</li>
+  
+    <li>It is difficult to refactor callback-based code to be synchronous</li>
+  
+    <li>Callbacks are literally equivalent to <code>goto</code></li>
+  
+  </ul>
+
+  
+  <div class="code"><pre>func getPersonAge(name) int {
+    // Is there a drop-in asynchronous replacement for
+    // synchronous http.Get using only callbacks?
+    result = http.Get(&#34;https://api.example.com/person&#34; &#43; name)
+    return unmarshal(result).Age
+}</pre></div>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Concurrency in Go: Channels</h3>
+        
+  <ul>
+  
+    <li>Channels provide a convenient way to share information between goroutines</li>
+  
+    <li>Channels serve as a &#34;synchronization point&#34; between otherwise independent, concurrent goroutines</li>
+  
+  </ul>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Channels by Example:</h3>
+        
+  <div class="code" contenteditable="true" spellcheck="false">
+
+
+<pre><span num="9">func Greet(name string, response_chan chan string) {</span>
+<span num="10">    greeting := fmt.Sprintf(&#34;Greetings, %s!&#34;, name)</span>
+<span num="11">    response_chan &lt;- greeting</span>
+<span num="12">}</span>
+<span num="13"></span>
+<span num="14">func main() {</span>
+<span num="15"></span>
+<span num="16">    cs := make(chan string)</span>
+<span num="17">    go Greet(&#34;Alice&#34;, cs)</span>
+<span num="18">    greeting := &lt;-cs</span>
+<span num="19">    log.Print(greeting)</span>
+<span num="20">}</span>
+</pre>
+
+
+</div>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Let&#39;s take a closer look at that:</h3>
+        
+  <div class="code" contenteditable="true" spellcheck="false">
+
+
+<pre><span num="10">func Greet(name string, response_chan chan string) {</span>
+<span num="11">    time.Sleep(3 * time.Second)</span>
+<span num="12">    greeting := fmt.Sprintf(&#34;Greetings, %s!&#34;, name)</span>
+<span num="13">    response_chan &lt;- greeting</span>
+<span num="14">    log.Print(&#34;Greeting function is tired - sleeping for a bit&#34;)</span>
+<span num="15">    time.Sleep(3 * time.Second)</span>
+<span num="16">    log.Print(&#34;now the greeting function is done sleeping - terminating&#34;)</span>
+<span num="17">}</span>
+<span num="18"></span>
+<span num="19">func main() {</span>
+<span num="20"></span>
+<span num="21">    cs := make(chan string)</span>
+<span num="22">    go Greet(&#34;Alice&#34;, cs)</span>
+<span num="23">    log.Print(&#34;Continuing execution while we wait for greeter to respond&#34;)</span>
+<span num="24">    greeting := &lt;-cs</span>
+<span num="25">    log.Print(greeting)</span>
+<span num="26">    time.Sleep(10 * time.Second)</span>
+<span num="27">}</span>
+</pre>
+
+
+</div>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Selecting Channels</h3>
+        
+  <ul>
+  
+    <li>&#34;select&#34; will read from the first channel that sends a value</li>
+  
+  </ul>
+
+  <div class="code" contenteditable="true" spellcheck="false">
+
+
+<pre><span num="5">select {</span>
+<span num="6">    case &lt;-algorithm1:</span>
+<span num="7">        // algorithm1 was faster</span>
+<span num="8">    case &lt;-algorithm2:</span>
+<span num="9">        // algorithm2 was faster</span>
+<span num="10">}</span>
+</pre>
+
+
+</div>
+
+  <ul>
+  
+    <li>This can also be used to initiate timeouts</li>
+  
+  </ul>
+
+  <div class="code" contenteditable="true" spellcheck="false">
+
+
+<pre><span num="5">select {</span>
+<span num="6">    case &lt;-ch:</span>
+<span num="7">        // a read from ch has occurred</span>
+<span num="8">    case &lt;-timeout:</span>
+<span num="9">        // the read from ch has timed out</span>
+<span num="10">}</span>
+</pre>
+
+
+</div>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>But why can&#39;t I just use &lt;insert Javascript pattern here/&gt;?</h3>
+        
+  <ul>
+  
+    <li>You could... but then you&#39;d lose parallelism</li>
+  
+    <li>Javascript runtimes all execute on a single thread</li>
+  
+    <li>In a multithreaded/parallel runtime environment, many Javascript async patterns would yield race conditions</li>
+  
+    <li>Worse, these race conditions would be <b>unsolvable</b> with a cooperative scheduler</li>
+  
+    <li>(N.B. This doesn&#39;t mean Javascript doesn&#39;t have race conditions as-is; they&#39;re just a different kind) </li>
+  
+    <li>Also, Go&#39;s runtime is <b>pre-emptive</b></li>
+  
+  </ul>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Pre-emption vs. cooperation</h3>
+        
+  <ul>
+  
+    <li>Under a cooperative model, a function has to voluntarily yield control.</li>
+  
+    <li>Under a pre-emptive model, the scheduler does not assume functions will cooperate</li>
+  
+    <li>Example: In Javascript, synchronous I/O inside a loop will freeze the entire browser</li>
+  
+    <li>In Go, running <b>any</b> function inside a loop will never† starve other goroutines</li>
+  
+    <li>Challenge: Implement channels and select in Javascript, using existing syntax and semantics and a cooperative scheduler but assuming a multithreaded runtime‡ </li>
+  
+  </ul>
+
+  
+  <p>
+    (†Obligatory &#34;well actually&#34;: inlined functions do not invoke the scheduler, but <code>gc</code> is very non-aggressive with inlining)
+<br>
+
+    ‡ If you solve this challenge, don&#39;t tell anyone else, but tell me so we can write the paper together and make lots of $$$
+  </p>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>In conclusion: Go makes concurrency easy</h3>
+        
+  <ul>
+  
+    <li>Goroutines are easy to reason about</li>
+  
+    <li>Channels make sharing information between goroutines easy</li>
+  
+    <li>Go includes <a href="http://golang.org/doc/articles/race_detector.html" target="_blank">a built-in race detector</a></li>
+  
+  </ul>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Why is this relevant to full-stack Go?</h3>
+        
+  <ul>
+  
+    <li>Currently, most client-side programming in other languages rely solely on the callback model</li>
+  
+    <li>It&#39;s easy to model callbacks in Go, but in doing so, you would lose a lot of what makes concurrency in Go easy</li>
+  
+    <li>Instead, let&#39;s try to use Go&#39;s native concurrency patterns, and gracefully degrade to callbacks only when necessary</li>
+  
+  </ul>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h2>Client-Side Go: Android</h2>
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>History of Go on Android</h3>
+        
+  <ul>
+  
+    <li>ARM has been a supported platform from Go 1.0</li>
+  
+    <li>With Go 1.4, Android is now <a href="https://github.com/golang/mobile" target="_blank">officially supported</a></li>
+  
+    <li>Main use cases: OpenGL games (pure Go), or libraries to interact with existing Java code.</li>
+  
+    <li>APIs are &#39;currently very limited, but under active development.&#39;</li>
+  
+  </ul>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Basic example: Framerate test</h3>
+        
+  <ul>
+  
+    <li>Warning: produces bright, rapidly flashing colors</li>
+  
+  </ul>
+
+  
+  <p>
+    <a href="https://github.com/golang/mobile/tree/master/example/basic" target="_blank">github.com/golang/mobile/tree/master/example/basic</a>
+  </p>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Screenshots</h3>
+        
+<div class="image">
+  <img src="basic_screenshot_1.png">
+</div>
+
+<div class="image">
+  <img src="basic_screenshot_2.png">
+</div>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>What about iOS?</h3>
+        
+  <ul>
+  
+    <li><a href="https://groups.google.com/forum/m/?_escaped_fragment_=topic/golang-nuts/mmB2q8RqB-Y#!topic/golang-nuts/mmB2q8RqB-Y" target="_blank">Potentially coming in 1.5 or 1.6</a>, (but don&#39;t hold your breath just yet)</li>
+  
+  </ul>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Client-Side Go: Web</h3>
+        
+  <ul>
+  
+    <li>Javascript is <b>not</b> an officially supported platform for Go</li>
+  
+    <li>However, <a href="https://github.com/gopherjs/gopherjs/" target="_blank">gopherjs</a> provides compilation-to-Javascript as a Go package</li>
+  
+    <li>GopherJS also provides bindings for <a href="https://github.com/gopherjs/jquery" target="_blank">JQuery</a>, <a href="https://github.com/gopherjs/websocket" target="_blank">websockets</a>, and <a href="https://github.com/gopherjs/webgl" target="_blank">webgl</a>.</li>
+  
+    <li>There is already a library for Angular.js support. React.js is potentially coming.</li>
+  
+  </ul>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Examples</h3>
+        
+  <ul>
+  
+    <li><a href="https://github.com/wyc/victini/blob/master/public/static/gojs/draft.go" target="_blank">A basic Magic: The Gathering draft app I worked on for the Gopher Gala</a></li>
+  
+    <li>...it doesn&#39;t count as Javascript if you don&#39;t have a <a href="https://github.com/gopherjs/todomvc" target="_blank">TodoMVC example</a></li>
+  
+    <li>For more info, take a look at <a href="https://github.com/gopherjs/gopherjs-book" target="_blank">the GopherJS book</a></li>
+  
+    <li>Also, Willa can tell you about her experiences with mixing GopherJS ↔ Javascript</li>
+  
+  </ul>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Client-Side Go: FirefoxOS</h3>
+        
+  <ul>
+  
+    <li>FirefoxOS uses Javascript natively, and we can compile Go to Javascript.  Next!</li>
+  
+  </ul>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Wait, isn&#39;t that cheating?</h3>
+        
+  <ul>
+  
+    <li>No! </li>
+  
+    <li>The Web is a powerful and versatile platform</li>
+  
+    <li>The distinction between &#39;Web&#39; and &#39;native&#39; exists, but it is artificial</li>
+  
+    <li>The Web is more &#34;cross-platform&#34; than the JVM and .NET have ever been</li>
+  
+  </ul>
+
+<div class="image">
+  <img src="firefox_os.png">
+</div>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Client-Side Go: Native Desktop Applications</h3>
+        
+  <ul>
+  
+    <li>Canonical has developed <a href="https://github.com/go-qml/qml" target="_blank">go-qml</a>, for using QML to write native desktop applications in Go</li>
+  
+    <li>This also runs on the Ubuntu Touch phone</li>
+  
+    <li>Examples: <a href="http://blog.labix.org/2014/04/25/qml-contest-results" target="_blank">Go QML contest winners</a></li>
+  
+  </ul>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Client-Side Go: Native Desktop Applications (approach #2)</h3>
+        
+  <ul>
+  
+    <li>If you don&#39;t want to use QML, you can also try andlabs&#39;s <a href="https://github.com/andlabs/ui" target="_blank">cross-platform UI toolkit</a></li>
+  
+  </ul>
+
+<div class="image">
+  <img src="widgetgallery.png">
+</div>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Key Takeaways</h3>
+        
+  <ul>
+  
+    <li>&#39;All mail clients suck. This one just sucks less.&#39; - <a href="http://www.mutt.org/" target="_blank">mutt</a> homepage</li>
+  
+    <li>Similarly, GUI programming has always been challenging, on every platform</li>
+  
+    <li>However, we can reduce friction by using a programming language that is <b>clear</b>, <b>concise</b>, and <b>easy to maintain</b>.</li>
+  
+    <li>We can also use languages which have <b>powerful tooling</b> to help us develop faster</li>
+  
+    <li>In 2015, it is possible to write an entire application - server, webapp, native Windows desktop app, native OS X desktop app, native Linux desktop app, native OpenBSD app, native Plan9 desktop app, native Android app, and native Firefox app... <b>without writing a single line of any language other than Go!</b></li>
+  
+  </ul>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3></h3>
+        
+  <ul>
+  
+    <li>In 2016, perhaps someone will do this. :)</li>
+  
+  </ul>
+
+      
+      </article>
+  
+  
+
+      <article>
+        <h3>Thank you</h1>
+        
+          <div class="presenter">
+            
+  
+  <p>
+    Aditya Mukerjee
+  </p>
+  
+
+          </div>
+        
+          <div class="presenter">
+            <p class="link"><a href="http://www.adityamukerjee.net" target="_blank">http://www.adityamukerjee.net</a></p><p class="link"><a href="http://twitter.com/chimeracoder" target="_blank">@chimeracoder</a></p>
+          </div>
+        
+      </article>
+
+  </body>
+  
+</html>
