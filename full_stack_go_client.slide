@@ -181,9 +181,9 @@ Yes, it really is just that easy.
 - Similarly, GUI programming has always been challenging, on every platform
 - However, we can reduce friction by using a programming language that is *clear*, *concise*, and *easy*to*maintain*.
 - We can also use languages which have *powerful*tooling* to help us develop faster
-- In 2015, it is possible to write an entire application - server, webapp, native Windows desktop app, native OS X desktop app, native Linux desktop app, native OpenBSD app, native Plan9 desktop app, native Android app, and native Firefox app... *without*writing*a*single*line*of*any*language*other*than*Go!*
+- As of Dec 2014, it is possible to write an entire application - server, webapp, native Windows desktop app, native OS X desktop app, native Linux desktop app, native OpenBSD app, native Plan9 desktop app, native Android app, and native Firefox app... *without*writing*a*single*line*of*any*language*other*than*Go!*
 
 
 * 
-- In 2016, perhaps someone will do this. :)
+- In 2015, perhaps someone will do this. :)
 
