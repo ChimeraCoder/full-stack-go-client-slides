@@ -4,8 +4,8 @@ package main
 // START OMIT
 select {
     case <-algorithm1:
-        // a read from ch has occurred
+        // algorithm1 was faster
     case <-algorithm2:
-        // the read from ch has timed out
+        // algorithm2 was faster
 }
 // END OMIT
